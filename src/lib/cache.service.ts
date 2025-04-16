@@ -74,6 +74,10 @@ export class CacheService {
     return value;
   }
 
+  /**
+   * Remove a key
+   * @param key 
+   */
   async remove(key: string): Promise<void> {
     if (key.includes("*") || key.includes("?")) {
       await this.removeAll(key);
@@ -83,6 +87,10 @@ export class CacheService {
     }
   }
 
+  /**
+   * Remove keys by pattern
+   * @param keyPattern 
+   */
   async removeAll(keyPattern: string): Promise<void> {
     const key = this.getKey(keyPattern);
     const keys = await this.redis.keys(key);

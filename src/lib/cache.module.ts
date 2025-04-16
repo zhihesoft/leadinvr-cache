@@ -7,7 +7,7 @@ import { CacheService } from "./cache.service";
 export class CacheModule {
     static register(options: CacheModuleSyncOptions): DynamicModule {
         return {
-            global: options.isGlobal,
+            global: options.isGlobal || true,
             module: CacheModule,
             providers: [
                 {
@@ -39,7 +39,7 @@ export class CacheModule {
         providers.push(CacheService);
 
         return {
-            global: options.isGlobal || false,
+            global: options.isGlobal || true,
             module: CacheModule,
             imports: options.imports || [],
             providers,
