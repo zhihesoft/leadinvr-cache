@@ -1,6 +1,6 @@
 {
     "name": "@leadinvr/cache",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "cache module for nestjs",
     "main": "./dist/index.js",
     "scripts": {

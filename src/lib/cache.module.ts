@@ -1,15 +1,13 @@
 import { DynamicModule, Provider } from "@nestjs/common";
 import { CacheModuleAsyncOptions } from "./cache.module.async.options";
 import { CACHE_MODULE_OPTIONS } from "./cache.module.constants";
-import { CacheModuleOptions } from "./cache.module.options";
+import { CacheModuleSyncOptions } from "./cache.module.sync.options";
 import { CacheService } from "./cache.service";
 
 export class CacheModule {
-    static register(options: CacheModuleOptions, global?: boolean): DynamicModule {
-        global = global || false;
-
+    static register(options: CacheModuleSyncOptions): DynamicModule {
         return {
-            global,
+            global: options.isGlobal,
             module: CacheModule,
             providers: [
                 {
@@ -41,7 +39,7 @@ export class CacheModule {
         providers.push(CacheService);
 
         return {
-            global: options.global || false,
+            global: options.isGlobal || false,
             module: CacheModule,
             imports: options.imports || [],
             providers,

@@ -1,7 +1,7 @@
 import { CacheModuleOptions } from "./cache.module.options";
 
 export class CacheModuleAsyncOptions {
-  global?: boolean;
+  isGlobal?: boolean;
   imports?: any[];
   inject?: any[];
   useFactory?: (
