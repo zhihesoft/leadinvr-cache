@@ -1,8 +1,8 @@
 import { DynamicModule, Provider } from "@nestjs/common";
-import { CacheModuleAsyncOptions } from "./cache.module.async.options";
 import { CACHE_MODULE_OPTIONS } from "./cache.module.constants";
-import { CacheModuleSyncOptions } from "./cache.module.sync.options";
-import { CacheService } from "./cache.service";
+import { CacheModuleAsyncOptions } from "./data/cache.module.async.options";
+import { CacheModuleSyncOptions } from "./data/cache.module.sync.options";
+import { CacheService } from "./service/cache.service";
 
 export class CacheModule {
     static register(options: CacheModuleSyncOptions): DynamicModule {

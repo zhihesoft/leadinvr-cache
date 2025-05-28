@@ -1,8 +1,14 @@
 import { applyDecorators, SetMetadata, UseInterceptors } from "@nestjs/common";
 import { CacheRevokeInterceptor } from "./cache.revoke.interceptor";
-import { CACHE_NAME_KEY, CachedInterceptor } from "./cached.interceptor";
+import { CachedInterceptor } from "./cached.interceptor";
 
-export function Cached(cacheName: string, ttl: number | string | undefined = "10m") {
+export const CACHE_NAME_KEY = "CACHE_NAME_KEY";
+export const CACHE_REVOKE_KEY = "CACHE_REVOKE_KEY";
+
+export function Cached(
+    cacheName: string,
+    ttl: number | string | undefined = "10s",
+) {
     return applyDecorators(
         SetMetadata(CACHE_NAME_KEY, {
             name: cacheName,
@@ -14,7 +20,7 @@ export function Cached(cacheName: string, ttl: number | string | undefined = "10
 
 export function RevokeCache(cacheName: string) {
     return applyDecorators(
-        SetMetadata(CACHE_NAME_KEY, {
+        SetMetadata(CACHE_REVOKE_KEY, {
             name: cacheName,
             ttl: 0,
         }),
