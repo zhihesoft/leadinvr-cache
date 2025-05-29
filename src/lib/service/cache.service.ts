@@ -76,7 +76,7 @@ export class CacheService implements OnModuleDestroy {
         return this.cache.has(key); // Ensure the cache is initialized
     }
 
-    async close() {
+    private async close() {
         this.cache.disconnect();
     }
 
