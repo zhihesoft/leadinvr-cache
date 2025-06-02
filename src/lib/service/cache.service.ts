@@ -1,5 +1,5 @@
 import KeyvRedis from "@keyv/redis";
-import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { Cacheable } from "cacheable";
 import { CACHE_MODULE_OPTIONS } from "../cache.module.constants";
 import { CacheModuleOptions } from "../data/cache.module.options";
@@ -11,6 +11,9 @@ export class CacheService implements OnModuleDestroy {
         private readonly options: CacheModuleOptions,
     ) {
         const redis = new KeyvRedis(options.redisUri);
+        redis.on("error", err => {
+            logger.error("Redis connection error: " + (err.message ?? err));
+        });
         this.cache = new Cacheable({
             namespace: options.workspace,
             secondary: redis as any, // KeyvRedis is compatible with Cacheable
@@ -98,3 +101,5 @@ export class CacheService implements OnModuleDestroy {
         return data?.value;
     }
 }
+
+const logger = new Logger(CacheService.name);
