@@ -49,6 +49,7 @@ export class CachedInterceptor implements NestInterceptor {
         for (const element of matches) {
             let v = "";
             if (element.startsWith("req.")) {
+                
                 v = req[element.slice(4)];
             } else if (element.startsWith("query.")) {
                 v = req.query[element.slice(6)];
