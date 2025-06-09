@@ -5,7 +5,7 @@ import {
     NestInterceptor,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { from, Observable, of, switchMap } from "rxjs";
+import { Observable, of, switchMap } from "rxjs";
 import { CacheService } from "./cache.service";
 import { CACHE_NAME_KEY } from "./cached.decorator";
 import { CachedMeta } from "./cached.meta";
@@ -22,9 +22,10 @@ export class CachedInterceptor implements NestInterceptor {
         next: CallHandler<any>,
     ): Promise<Observable<any>> {
         const req = context.switchToHttp().getRequest();
+
         // only cache GET and DELETE requests
         const method = String(req.method).toUpperCase();
-        if (method !== "GET") {
+        if (method !== "GET" && method !== "DELETE") {
             return next.handle();
         }
 
@@ -36,7 +37,26 @@ export class CachedInterceptor implements NestInterceptor {
             return next.handle();
         }
 
-        let key = `${cachedMeta.name}`;
+        // 使用 matchAll（推荐，Node.js 10+）
+        const regex = /\{([^}]*)\}/g;
+        const matches = [];
+        for (const match of cachedMeta.name.matchAll(regex)) {
+            matches.push(match[1]); // match[1] 获取捕获组内容
+        }
+
+        // 替换匹配的参数
+        let key = cachedMeta.name;
+        for (const element of matches) {
+            let v = "";
+            if (element.startsWith("req.")) {
+                v = req[element.slice(4)];
+            } else if (element.startsWith("query.")) {
+                v = req.query[element.slice(6)];
+            }
+            if (v && v.length > 0) {
+                key = key.replace(`{${element}}`, String(v));
+            }
+        }
 
         if (await this.cache.has(key)) {
             const hit = await this.cache.get(key);
@@ -44,19 +64,10 @@ export class CachedInterceptor implements NestInterceptor {
         }
 
         return next.handle().pipe(
-            switchMap(data =>
-                from(
-                    (async data => {
-                        await this.cache.set(key, data, cachedMeta.ttl);
-                        return data;
-                    })(data),
-                ),
-            ),
-            // tap(data => {
-            //     this.cache.set(key, data, cachedMeta.ttl).catch(err => {
-            //         throw err;
-            //     });
-            // }),
+            switchMap(async data => {
+                await this.cache.set(key, data, cachedMeta.ttl);
+                return data;
+            }),
         );
     }
 }
