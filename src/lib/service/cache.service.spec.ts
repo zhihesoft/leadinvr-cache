@@ -2,10 +2,11 @@ import "reflect-metadata";
 
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import request from "supertest";
 import { CacheModule } from "../cache.module";
 import { CacheService } from "./cache.service";
 import { CacheTestController } from "./cache.test.controller";
+
+import request from "supertest";
 
 describe("CacheModule", () => {
     let app: INestApplication;
@@ -18,7 +19,7 @@ describe("CacheModule", () => {
             imports: [
                 CacheModule.register({
                     isGlobal: true,
-                    redisUri: redisUri,
+                    redisUrl: redisUri,
                     workspace: "cache-test",
                 }),
             ],
@@ -28,6 +29,7 @@ describe("CacheModule", () => {
         app = moduleRef.createNestApplication();
         await app.init();
         svc = moduleRef.get(CacheService);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // wait for redis connection
     });
 
     afterAll(async () => {
@@ -49,11 +51,11 @@ describe("CacheModule", () => {
     });
 
     it("get key", async () => {
-        await svc.set("test2", { name: "test2" }, 0.5);
+        await svc.set("test2", { name: "test2" }, 1);
         const data: { name: string } | undefined = await svc.get("test2");
         expect(data).toBeDefined();
         expect(data!.name).toBe("test2");
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait for 1 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000)); // wait for 1 seconds
         const data2: { name: string } | undefined = await svc.get("test2");
         expect(data2).toBeUndefined();
     });
@@ -70,5 +72,7 @@ describe("CacheModule", () => {
         expect(resp.text).toBe("Cache Test Endpoint");
         cachedData = await svc.get("testCache");
         expect(cachedData).toBeUndefined();
+
+        console.log("Local cache stats", svc.cacheStats);
     });
 });

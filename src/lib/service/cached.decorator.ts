@@ -5,7 +5,7 @@ import { CachedInterceptor } from "./cached.interceptor";
 export const CACHE_NAME_KEY = "CACHE_NAME_KEY";
 export const CACHE_REVOKE_KEY = "CACHE_REVOKE_KEY";
 
-export function HttpCache(cacheName: string, ttl: number | string = "10s") {
+export function HttpCache(cacheName: string, ttl: number) {
     return applyDecorators(
         SetMetadata(CACHE_NAME_KEY, {
             name: cacheName,

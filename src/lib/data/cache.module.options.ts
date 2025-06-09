@@ -2,7 +2,7 @@ export class CacheModuleOptions {
   /**
    * Redis URI
    */
-  redisUri: string = "";
+  redisUrl: string = "";
 
   /**
    * Redis workspace

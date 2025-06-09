@@ -3,7 +3,7 @@ import { HttpCache, RevokeHttpCache } from "./cached.decorator";
 
 @Controller("cache")
 export class CacheTestController {
-    @HttpCache("testCache", "60s")
+    @HttpCache("testCache", 10)
     @Get("get-test")
     getTest(): string {
         return "Cache Test Endpoint";

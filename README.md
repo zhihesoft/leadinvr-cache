@@ -19,28 +19,32 @@ cache module for nestjs
 
 # Quick Start
 
+This module is a wrap of node-redis for NestJS
+
+It requires Redist V5 or above.
+
 ## Register
 
 ```ts
-CacheModule.register(
-    {
-        uri: "redis://localhost",
-        workspace: "demo",
-    },
-    /* is global register */
-    true,
-);
+CacheModule.register({
+    /* Register as global module, default is true */
+    isGlobal: true,
+    /** Redis url redis[s]://[[username][:password]@][host][:port][/db-number] */
+    redisUrl: "redis://localhost",
+    /** default workspace */
+    workspace: "demo",
+});
 ```
 
 ## Async register
 
 ```ts
 CacheModule.registerAsync({
-    isGlobal: true /* Default is true */,
+    /* Register as global module, default is true */
     imports: [ConfigModule],
     inject: [ConfigService],
     useFactory: (configs: ConfigService) => ({
-        uri: configs.get("REDIS_URL"),
+        redisUrl: configs.get("REDIS_URL"),
         workspace: "demo",
     }),
 });
@@ -123,7 +127,7 @@ async remove(@Query("name") name: string) {
 ```ts
     /**
      * Remove a key
-     * @param key 
+     * @param key
      */
     async remove(key: string): Promise<void>
 ```
@@ -131,7 +135,7 @@ async remove(@Query("name") name: string) {
 ```ts
     /**
      * Remove keys by pattern
-     * @param keyPattern 
+     * @param keyPattern
      */
     async removeAll(keyPattern: string): Promise<void>
 ```

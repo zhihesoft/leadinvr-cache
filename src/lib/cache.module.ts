@@ -39,8 +39,8 @@ export class CacheModule {
         providers.push(CacheService);
 
         return {
-            global: options.isGlobal || true,
             module: CacheModule,
+            global: options.isGlobal || true,
             imports: options.imports || [],
             providers,
             exports: [CacheService],
