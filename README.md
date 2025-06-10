@@ -30,9 +30,12 @@ CacheModule.register({
     /* Register as global module, default is true */
     isGlobal: true,
     /** Redis url redis[s]://[[username][:password]@][host][:port][/db-number] */
+    /** If redis url is empty or undefined, only memory cache will be used */
     redisUrl: "redis://localhost",
     /** default workspace */
     workspace: "demo",
+    /** default ttl in seconds */
+    ttl: 10,
 });
 ```
 

@@ -28,8 +28,8 @@ export class CacheRevokeInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
             switchMap(async data => {
-                const key = cachedMeta.name;
-                await this.cache.remove(key);
+                const keys = await this.cache.keys(cachedMeta.name);
+                await this.cache.remove(keys);
                 return data;
             }),
         );

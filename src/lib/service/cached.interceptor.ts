@@ -49,8 +49,7 @@ export class CachedInterceptor implements NestInterceptor {
         for (const element of matches) {
             let v = "";
             if (element.startsWith("req.")) {
-                
-                v = req[element.slice(4)];
+                v = this.getPropertyValue(req, element.slice(4));
             } else if (element.startsWith("query.")) {
                 v = req.query[element.slice(6)];
             }
@@ -70,5 +69,21 @@ export class CachedInterceptor implements NestInterceptor {
                 return data;
             }),
         );
+    }
+
+    private getPropertyValue(obj: unknown, property: string): any {
+        if (typeof obj !== "object" || obj === null) {
+            return undefined;
+        }
+        const keys = property.split(".");
+        let value: any = obj;
+        for (const key of keys) {
+            if (value && key in value) {
+                value = value[key];
+            } else {
+                return undefined;
+            }
+        }
+        return value;
     }
 }

@@ -1,11 +1,16 @@
 export class CacheModuleOptions {
-  /**
-   * Redis URI
-   */
-  redisUrl: string = "";
+    /**
+     * Redis URI
+     */
+    redisUrl?: string = "";
 
-  /**
-   * Redis workspace
-   */
-  workspace: string = "default";
+    /**
+     * Default workspace
+     */
+    workspace: string = "default";
+
+    /**
+     * Default ttl in seconds
+     */
+    ttl: number = 10;
 }

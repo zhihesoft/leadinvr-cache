@@ -8,11 +8,11 @@ import { CacheTestController } from "./cache.test.controller";
 
 import request from "supertest";
 
-describe("CacheModule", () => {
+describe("CacheModule with memory", () => {
     let app: INestApplication;
     let moduleRef: TestingModule;
     let svc: CacheService;
-    const redisUri = "redis://127.0.0.1:6379";
+    const redisUri = "";
 
     beforeAll(async () => {
         moduleRef = await Test.createTestingModule({
@@ -61,9 +61,7 @@ describe("CacheModule", () => {
     });
 
     it("cache decorators", async () => {
-        let resp = await request(app.getHttpServer()).get(
-            "/cache/get-test?name=testName",
-        );
+        let resp = await request(app.getHttpServer()).get("/cache/get-test?name=testName");
         expect(resp.status).toBe(200);
         expect(resp.text).toBe("Cache Test Endpoint");
         let cachedData = await svc.get("testCache:testName");

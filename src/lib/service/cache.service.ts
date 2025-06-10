@@ -5,49 +5,54 @@ import {
     OnModuleDestroy,
     OnModuleInit,
 } from "@nestjs/common";
-import { BasicClientSideCache, createClient, RedisClientType } from "redis";
 import { CACHE_MODULE_OPTIONS } from "../cache.module.constants";
 import { CacheModuleOptions } from "../data/cache.module.options";
+import { CacheCore } from "./cache.core";
+import { MemoryCache } from "./memory.cache";
+import { RedisCache } from "./redis.cache";
 
 @Injectable()
 export class CacheService implements OnModuleDestroy, OnModuleInit {
     constructor(
         @Inject(CACHE_MODULE_OPTIONS)
         private readonly options: CacheModuleOptions,
-    ) {}
+    ) {
+        this.layer1 = new MemoryCache({
+            workspace: this.options.workspace,
+            ttl: this.options.ttl,
+            maxSize: 1024,
+        });
+    }
 
-    private clientCache: BasicClientSideCache | undefined;
-    private redis: RedisClientType | undefined;
+    private layer1: CacheCore;
+    private layer2?: CacheCore;
 
-    public get workspace(): string {
+    public get workspace() {
         return this.options.workspace || "default";
     }
 
-    public get cacheStats() {
-        return this.clientCache?.stats();
-    }
-
     async onModuleInit() {
-        this.clientCache = new BasicClientSideCache({
-            ttl: 0,
-            maxEntries: 0,
-            evictPolicy: "LRU",
-        });
-        const redis = await createClient({
-            RESP: 3,
-            url: this.options.redisUrl,
-            clientSideCache: this.clientCache,
-        })
-            .on("error", err => {
-                logger.error("Redis error: " + (err.message ?? err));
-            })
-            .connect();
+        await this.layer1.init();
 
-        this.redis = redis as unknown as RedisClientType;
+        if (!this.options.redisUrl || this.options.redisUrl.trim() === "") {
+            logger.warn(
+                "Redis URL is not provided. Cache will only use in-memory storage.",
+            );
+            return;
+        }
+
+        this.layer2 = new RedisCache({
+            url: this.options.redisUrl,
+            workspace: this.options.workspace,
+            ttl: this.options.ttl,
+        });
+
+        await this.layer2?.init();
     }
 
-    onModuleDestroy() {
-        this.redis?.close();
+    async onModuleDestroy() {
+        await this.layer1.close();
+        await this.layer2?.close();
     }
 
     /**
@@ -55,16 +60,22 @@ export class CacheService implements OnModuleDestroy, OnModuleInit {
      * @param key key
      * @returns
      */
-    async get<T>(
-        key: string,
-        creator?: { ttl: number; func: () => Promise<T> },
-    ): Promise<T | undefined> {
-        let ret = await this.getValue<T>(key);
-        if (ret == undefined && creator) {
-            ret = await creator.func();
-            await this.set(key, ret, creator.ttl);
+    async get<T>(key: string): Promise<T | undefined> {
+        let value = await this.layer1.get<T>(key);
+        if (value) {
+            return value;
         }
-        return ret;
+
+        if (this.layer2) {
+            value = await this.layer2.get<T>(key);
+            if (value) {
+                // If found in layer2, set it in layer1 for faster access next time
+                await this.layer1.set(key, value, this.options.ttl);
+                return value;
+            }
+        }
+
+        return undefined;
     }
 
     /**
@@ -75,7 +86,10 @@ export class CacheService implements OnModuleDestroy, OnModuleInit {
      * @returns
      */
     async set<T>(key: string, value: T, ttl: number): Promise<T> {
-        await this.setValue(key, value, ttl);
+        await this.layer1.set(key, value, ttl);
+        if (this.layer2) {
+            await this.layer2.set(key, value, ttl);
+        }
         return value;
     }
 
@@ -83,17 +97,30 @@ export class CacheService implements OnModuleDestroy, OnModuleInit {
      * Remove a key
      * @param key
      */
-    async remove(key: string): Promise<void> {
-        key = this.getKey(key);
-        await this.redis?.unlink(key); // Ensure the cache is initialized
+    async remove(key: string | string[]): Promise<void> {
+        await this.layer1.del(key);
+        if (this.layer2) {
+            await this.layer2.del(key);
+        }
+    }
+
+    async keys(pattern?: string): Promise<string[]> {
+        const keys1 = await this.layer1.keys(pattern);
+        if (this.layer2) {
+            const keys2 = await this.layer2.keys(pattern);
+            return Array.from(new Set([...keys1, ...keys2])); // Combine and deduplicate keys
+        }
+        return keys1;
     }
 
     /**
      * Remove keys by pattern
      */
     async clear(): Promise<void> {
-        const keys = await this.redis?.keys(`${this.workspace}*`);
-        await this.redis?.unlink(keys || []);
+        await this.layer1.clear();
+        if (!this.layer2) {
+            await this.layer1.clear();
+        }
     }
 
     /**
@@ -102,33 +129,19 @@ export class CacheService implements OnModuleDestroy, OnModuleInit {
      * @returns
      */
     async has(key: string): Promise<boolean> {
-        const ret = await this.redis?.exists(key); // Ensure the redis client is initialized
-        return !!ret;
-    }
-
-    private getKey(key: string): string {
-        const workspace = this.options.workspace || "default";
-        return `${workspace}:${key}`;
-    }
-
-    private async setValue(
-        key: string,
-        value: any,
-        seconds?: number,
-    ): Promise<void> {
-        key = this.getKey(key);
-        const data = JSON.stringify({ value });
-        let ttl = { EX: seconds };
-        await this.redis?.set(key, data, ttl);
-    }
-
-    private async getValue<T>(key: string): Promise<T | undefined> {
-        key = this.getKey(key);
-        const data = await this.redis?.get(key);
-        if (!data) {
-            return undefined;
+        const exists = await this.layer1.has(key);
+        if (exists) {
+            return true; // If found in layer1, no need to check layer2
         }
-        return JSON.parse(data).value as T;
+        if (!this.layer2) {
+            return false; // If no layer2, return false
+        }
+
+        const existsInLayer2 = await this.layer2.has(key);
+        if (existsInLayer2) {
+            return true;
+        }
+        return false;
     }
 }
 
