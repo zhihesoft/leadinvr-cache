@@ -21,7 +21,7 @@ cache module for nestjs
 
 This module is a wrap of node-redis for NestJS
 
-It requires Redist V5 or above.
+It requires Redist V7.4 or later.
 
 ## Register
 

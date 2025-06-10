@@ -37,6 +37,12 @@ export class RedisCache extends CacheCore {
     async init(): Promise<void> {
         const redis = await createClient({
             url: this.redisUrl,
+            RESP: 3,
+            clientSideCache: {
+                ttl: 0, // Time-to-live in milliseconds (0 = no expiration)
+                maxEntries: 0, // Maximum entries to store (0 = unlimited)
+                evictPolicy: "LRU", // Eviction policy: "LRU" or "FIFO"
+            },
         })
             .on("error", err => {
                 logger.error("Redis error: " + (err.message ?? err));
