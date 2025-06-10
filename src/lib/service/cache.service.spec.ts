@@ -12,7 +12,8 @@ describe("CacheModule", () => {
     let app: INestApplication;
     let moduleRef: TestingModule;
     let svc: CacheService;
-    const redisUri = "redis://127.0.0.1:6379";
+    // const redisUri = "redis://127.0.0.1:6379";
+    const redisUri = "";
 
     beforeAll(async () => {
         moduleRef = await Test.createTestingModule({
