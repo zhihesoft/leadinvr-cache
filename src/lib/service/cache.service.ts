@@ -4,8 +4,8 @@ import {
     OnModuleDestroy,
     OnModuleInit,
 } from "@nestjs/common";
-import { CACHE_MODULE_OPTIONS } from "../cache.module.constants";
-import { CacheModuleOptions } from "../data/cache.module.options";
+import { MODULE_OPTIONS_TOKEN } from "../cache.module-defination";
+import { CacheModuleOptions } from "../cache.module.options";
 import { CacheCore } from "./cache.core";
 import { MemoryCache } from "./memory.cache";
 import { RedisCache } from "./redis.cache";
@@ -13,7 +13,7 @@ import { RedisCache } from "./redis.cache";
 @Injectable()
 export class CacheService implements OnModuleDestroy, OnModuleInit {
     constructor(
-        @Inject(CACHE_MODULE_OPTIONS)
+        @Inject(MODULE_OPTIONS_TOKEN)
         private readonly options: CacheModuleOptions,
     ) {
         if (options.redisUrl) {
