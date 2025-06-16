@@ -45,7 +45,12 @@ export class RedisCache extends CacheCore {
             },
         })
             .on("error", err => {
-                logger.error("Redis error: " + (err.message ?? err));
+                if (err.code === "ECONNRESET") {
+                    // this is not error, just a connection reset
+                    // node-redis will try to reconnect automatically
+                } else {
+                    logger.error("Redis connection error", err);
+                }
             })
             .connect();
 
