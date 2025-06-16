@@ -102,7 +102,7 @@ export class RedisCache extends CacheCore {
         const keys = Array.isArray(key)
             ? key.map(k => this.getKey(k))
             : [this.getKey(key)];
-        await this.redis!.unlink(keys);
+        await this.redis!.del(keys);
     }
     async clear(): Promise<void> {
         this.checkRedis();
