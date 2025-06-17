@@ -8,9 +8,4 @@ export class CacheModuleOptions {
      * Default workspace
      */
     workspace: string = "default";
-
-    /**
-     * Default ttl in seconds
-     */
-    ttl: number = 10;
 }

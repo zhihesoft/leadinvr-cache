@@ -38,7 +38,6 @@ describe("CacheModule", () => {
                 CacheModule.register({
                     isGlobal: true,
                     redisUrl: redisUri,
-                    ttl: 10,
                     workspace: "cache-test",
                 }),
             ],
