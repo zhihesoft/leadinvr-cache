@@ -4,9 +4,26 @@ import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { CacheModule } from "../cache.module";
 import { CacheService } from "./cache.service";
-import { CacheTestController } from "./cache.test.controller";
 
 import request from "supertest";
+
+import { Controller, Delete, Get, Query } from "@nestjs/common";
+import { HttpCache, RevokeHttpCache } from "./cached.decorator";
+
+@Controller("cache")
+export class CacheTestController {
+    @HttpCache("testCache:{query.name}", 60)
+    @Get("get-test")
+    getTest(@Query("name") name: string): string {
+        return "Cache Test Endpoint";
+    }
+
+    @RevokeHttpCache("testCache:*")
+    @Delete("delete-test")
+    deleteTest(): string {
+        return "Cache Test Endpoint";
+    }
+}
 
 describe("CacheModule", () => {
     let app: INestApplication;
@@ -59,6 +76,10 @@ describe("CacheModule", () => {
         await new Promise(resolve => setTimeout(resolve, 2000)); // wait for 1 seconds
         const data2: { name: string } | undefined = await svc.get("test2");
         expect(data2).toBeUndefined();
+    });
+
+    it("delete key not exists", async () => {
+        await svc.remove(["test3", "test4444"]);
     });
 
     it("cache decorators", async () => {

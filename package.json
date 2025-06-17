@@ -1,6 +1,6 @@
 {
     "name": "@leadinvr/cache",
-    "version": "1.2.12",
+    "version": "1.2.16",
     "description": "cache module for nestjs",
     "main": "./dist/index.js",
     "scripts": {
@@ -35,7 +35,9 @@
         "ts-jest": "^29.3.4"
     },
     "dependencies": {
+        "@keyv/redis": "^4.4.0",
         "@nestjs/platform-express": "^11.1.2",
+        "cacheable": "^1.10.0",
         "redis": "^5.5.6"
     }
 }
