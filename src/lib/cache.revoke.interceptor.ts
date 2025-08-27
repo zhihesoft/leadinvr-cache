@@ -1,9 +1,4 @@
-import {
-    CallHandler,
-    ExecutionContext,
-    Injectable,
-    NestInterceptor,
-} from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable, switchMap } from "rxjs";
 import { CacheService } from "./cache.service";
@@ -17,14 +12,8 @@ export class CacheRevokeInterceptor implements NestInterceptor {
         private readonly reflector: Reflector,
     ) {}
 
-    intercept(
-        context: ExecutionContext,
-        next: CallHandler<any>,
-    ): Observable<any> | Promise<Observable<any>> {
-        const cachedMeta: CachedMeta = this.reflector.get(
-            CACHE_REVOKE_KEY,
-            context.getHandler(),
-        );
+    intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
+        const cachedMeta: CachedMeta = this.reflector.get(CACHE_REVOKE_KEY, context.getHandler());
 
         return next.handle().pipe(
             switchMap(async data => {

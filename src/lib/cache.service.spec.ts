@@ -1,12 +1,11 @@
-import "reflect-metadata";
-
 import { INestApplication } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { CacheModule } from "../cache.module";
 import { CacheService } from "./cache.service";
 
-import request from "supertest";
+import * as request from "supertest";
 
+import { forgot } from "@app/common/lib/util";
 import { Controller, Delete, Get, Query } from "@nestjs/common";
 import { HttpCache, RevokeHttpCache } from "./cached.decorator";
 
@@ -15,6 +14,7 @@ export class CacheTestController {
     @HttpCache("testCache:{query.name}", 60)
     @Get("get-test")
     getTest(@Query("name") name: string): string {
+        forgot(name);
         return "Cache Test Endpoint";
     }
 
@@ -29,8 +29,8 @@ describe("CacheModule", () => {
     let app: INestApplication;
     let moduleRef: TestingModule;
     let svc: CacheService;
-    // const redisUri = "redis://127.0.0.1:6379";
-    const redisUri = "";
+    const redisUri = "redis://127.0.0.1:6379";
+    // const redisUri = "";
 
     beforeAll(async () => {
         moduleRef = await Test.createTestingModule({
@@ -56,7 +56,7 @@ describe("CacheModule", () => {
     // let catsService = { findAll: () => ['test'] };
     // redis://127.0.0.1:6379
 
-    it("register", async () => {
+    it("register", () => {
         expect(svc).toBeDefined();
     });
 
@@ -82,9 +82,7 @@ describe("CacheModule", () => {
     });
 
     it("cache decorators", async () => {
-        let resp = await request(app.getHttpServer()).get(
-            "/cache/get-test?name=testName",
-        );
+        let resp = await request(app.getHttpServer()).get("/cache/get-test?name=testName");
         expect(resp.status).toBe(200);
         expect(resp.text).toBe("Cache Test Endpoint");
         let cachedData = await svc.get("testCache:testName");

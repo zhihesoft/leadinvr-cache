@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { ConfigurableModuleClass } from "./cache.module-defination";
-import { CacheService } from "./service/cache.service";
+import { CacheService } from "./lib/cache.service";
 
 @Module({
     providers: [CacheService],

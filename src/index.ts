@@ -1,4 +1,6 @@
-export { CacheModule } from "./lib/cache.module";
-export { CacheService } from "./lib/service/cache.service";
-export { HttpCache, RevokeHttpCache } from "./lib/service/cached.decorator";
-export { CachedMeta } from "./lib/service/cached.meta";
+export { CacheModule } from "./cache.module";
+export { CacheService } from "./lib/cache.service";
+export { CachedMeta } from "./lib/cached.meta";
+
+export { HttpCache, RevokeHttpCache } from "./lib/cached.decorator";
+

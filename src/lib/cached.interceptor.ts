@@ -1,9 +1,4 @@
-import {
-    CallHandler,
-    ExecutionContext,
-    Injectable,
-    NestInterceptor,
-} from "@nestjs/common";
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable, of, switchMap } from "rxjs";
 import { CacheService } from "./cache.service";
@@ -17,10 +12,7 @@ export class CachedInterceptor implements NestInterceptor {
         private readonly reflector: Reflector,
     ) {}
 
-    async intercept(
-        context: ExecutionContext,
-        next: CallHandler<any>,
-    ): Promise<Observable<any>> {
+    async intercept(context: ExecutionContext, next: CallHandler<any>): Promise<Observable<any>> {
         const req = context.switchToHttp().getRequest();
 
         // only cache GET and DELETE requests
@@ -29,17 +21,14 @@ export class CachedInterceptor implements NestInterceptor {
             return next.handle();
         }
 
-        const cachedMeta: CachedMeta = this.reflector.get(
-            CACHE_NAME_KEY,
-            context.getHandler(),
-        );
+        const cachedMeta: CachedMeta = this.reflector.get(CACHE_NAME_KEY, context.getHandler());
         if (!cachedMeta?.name) {
             return next.handle();
         }
 
         // 使用 matchAll（推荐，Node.js 10+）
         const regex = /\{([^}]*)\}/g;
-        const matches = [];
+        const matches: string[] = [];
         for (const match of cachedMeta.name.matchAll(regex)) {
             matches.push(match[1]); // match[1] 获取捕获组内容
         }
